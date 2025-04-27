@@ -79,7 +79,7 @@ export default function CityDetails() {
             </h2>
             <div className="grid grid-cols-3 gap-[30px]">
                 {city.officeSpaces.map((office) => (
-                    <Link key={office.id} to={`/city/${city.slug}`} >
+                    <Link key={office.id} to={`/office/${office.slug}`} >
                         <OfficeCard office={office}></OfficeCard>
                     </Link>
                 ))}

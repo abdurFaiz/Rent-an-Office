@@ -20,6 +20,7 @@ interface Photo {
 interface Benefit {
     id: number,
     benefit: string
+    name: string
 }
 
 export interface City {
