@@ -4,6 +4,8 @@ import { z } from "zod";
 import axios from "axios";
 import { Office } from "../types/type";
 import { bookingSchema } from "../types/validationBooking";
+import Navbar from "../components/Navbar";
+import apiClient from "../services/apiService";
 
 export default function BookOffice() {
     const { slug } = useParams<{ slug: string }>();
@@ -28,11 +30,7 @@ export default function BookOffice() {
     useEffect(() => {
         const fetchOffice = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/api/office/${slug}`, {
-                    headers: {
-                        'X-API-KEY': 'asdfghjkl'
-                    }
-                });
+                const response = await apiClient.get(`/office/${slug}`);
 
                 setOffice(response.data.data);
                 console.log(response.data.data);
@@ -93,17 +91,30 @@ export default function BookOffice() {
             return;
         }
 
-        setIsLoading(true);
+        setIsLoading(true); try {            // Format the date to match the backend's expected format (YYYY-MM-DD)
+            // Format phone number to E.164 format for Twilio
+            let phoneNumber = formData.phone_number.replace(/\D/g, ''); // Remove non-digits
+            // If number starts with 0, replace it with Indonesia country code
+            if (phoneNumber.startsWith('0')) {
+                phoneNumber = '62' + phoneNumber.substring(1);
+            }
+            // If number doesn't start with country code, add it
+            if (!phoneNumber.startsWith('62')) {
+                phoneNumber = '62' + phoneNumber;
+            }
 
-        try {
-            const response = await axios.post("http://localhost:8000/api/booking-transaction",
-                {
-                    // cara melemparkan data ke backend dengan menggunakan spread operator pada filed yang akaan di lempar
-                    ...formData,
-                },
+            const formattedData = {
+                ...formData,
+                started_at: new Date(formData.started_at).toISOString().split('T')[0],
+                total_amount: Number(formData.total_amount), // Ensure total_amount is a number
+                phone_number: phoneNumber,
+            };
+
+            const response = await apiClient.post("/booking-transaction",
+                formattedData,
                 {
                     headers: {
-                        'X-API-KEY': 'asdfghjkl',
+                        'Content-Type': 'application/json',
                     },
                 },
             );
@@ -117,7 +128,9 @@ export default function BookOffice() {
             });
         } catch (e) {
             if (axios.isAxiosError(e)) {
-                setError(e.message);
+                const errorMessage = e.response?.data?.message || e.message;
+                setError(errorMessage);
+                console.error('Booking error:', e.response?.data); // For debugging
             } else {
                 setError("An error occurred while booking the office");
             };
@@ -128,6 +141,7 @@ export default function BookOffice() {
 
     return (
         <>
+            <Navbar />
             <div
                 id="Banner"
                 className="relative w-full h-[240px] flex items-center shrink-0 overflow-hidden -mb-[50px]"

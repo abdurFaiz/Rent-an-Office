@@ -3,6 +3,7 @@ import OfficeCard from "../components/OfficeCard";
 import axios from "axios";
 import { Office } from "../types/type";
 import { Link } from "react-router-dom";
+import apiClient from "../services/apiService";
 
 export default function BrowseOfficeWrappers() {
 
@@ -11,11 +12,7 @@ export default function BrowseOfficeWrappers() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        axios.get('http://127.0.0.1:8000/api/offices', {
-            headers: {
-                'X-API-KEY': 'asdfghjkl'
-            }
-        }).then((response) => {
+        apiClient.get('/offices').then((response) => {
             setOffices(response.data.data);
             setLoading(false);
         }).catch((error) => {
